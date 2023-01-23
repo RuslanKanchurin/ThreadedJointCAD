@@ -535,6 +535,1443 @@ void Joint::build(){
 
 
     theSession->DisplayManager()->BlankObjects(dis_objects2);
+
+    theSession->ApplicationSwitchImmediate("UG_APP_SFEM");
+
+
+
+    // ----------------------------------------------
+    //   Menu: Вставить->Подготовка модели->Обрезка->Разделить тело...
+    // ----------------------------------------------
+    NXOpen::NXObject* split_body;
+    {
+        NXOpen::Features::SplitBody* nullNXOpen_Features_SplitBody(NULL);
+        NXOpen::Features::SplitBodyBuilder* splitBodyBuilder1;
+        splitBodyBuilder1 = workPart->Features()->CreateSplitBodyBuilderUsingCollector(nullNXOpen_Features_SplitBody);
+
+        NXOpen::Point3d origin1(0.0, 0.0, 0.0);
+        NXOpen::Vector3d normal1(0.0, 0.0, 1.0);
+        NXOpen::Plane* plane1;
+        plane1 = workPart->Planes()->CreatePlane(origin1, normal1, NXOpen::SmartObject::UpdateOptionWithinModeling);
+
+        splitBodyBuilder1->BooleanTool()->FacePlaneTool()->SetToolPlane(plane1);
+
+        splitBodyBuilder1->BooleanTool()->SetToolOption(NXOpen::GeometricUtilities::BooleanToolBuilder::BooleanToolTypeNewPlane);
+
+        splitBodyBuilder1->SetKeepImprintedEdges(true);
+
+        splitBodyBuilder1->BooleanTool()->ExtrudeRevolveTool()->ToolSection()->PrepareMappingData();
+
+
+        splitBodyBuilder1->BooleanTool()->ExtrudeRevolveTool()->ToolSection()->SetDistanceTolerance(0.01);
+
+        splitBodyBuilder1->BooleanTool()->ExtrudeRevolveTool()->ToolSection()->SetChainingTolerance(0.0094999999999999998);
+
+        NXOpen::ScCollector* scCollector1;
+        scCollector1 = workPart->ScCollectors()->CreateCollector();
+
+        std::vector<NXOpen::Body*> bodies1(1);
+        NXOpen::Body* body1(FaceAr[0]->GetBody());
+        bodies1[0] = body1;
+        NXOpen::BodyDumbRule* bodyDumbRule1;
+        bodyDumbRule1 = workPart->ScRuleFactory()->CreateRuleBodyDumb(bodies1, true);
+
+        std::vector<NXOpen::SelectionIntentRule*> rules1(1);
+        rules1[0] = bodyDumbRule1;
+        scCollector1->ReplaceRules(rules1, false);
+
+        splitBodyBuilder1->SetTargetBodyCollector(scCollector1);
+
+        std::vector<NXOpen::Body*> bodies2(2);
+        bodies2[0] = body1;
+        NXOpen::Body* body2(FaceAr1[0]->GetBody());
+        bodies2[1] = body2;
+        NXOpen::BodyDumbRule* bodyDumbRule2;
+        bodyDumbRule2 = workPart->ScRuleFactory()->CreateRuleBodyDumb(bodies2, true);
+
+        std::vector<NXOpen::SelectionIntentRule*> rules2(1);
+        rules2[0] = bodyDumbRule2;
+        scCollector1->ReplaceRules(rules2, false);
+
+        splitBodyBuilder1->SetTargetBodyCollector(scCollector1);
+
+        plane1->SetMethod(NXOpen::PlaneTypes::MethodTypeDistance);
+
+        std::vector<NXOpen::NXObject*> geom1(1);
+        NXOpen::DatumPlane* datumPlane1(dynamic_cast<NXOpen::DatumPlane*>(workPart->Datums()->FindObject("DATUM_CSYS(0) YZ plane")));
+        geom1[0] = datumPlane1;
+        plane1->SetGeometry(geom1);
+
+        plane1->SetFlip(false);
+
+        plane1->SetReverseSide(false);
+
+        plane1->SetAlternate(NXOpen::PlaneTypes::AlternateTypeOne);
+
+        plane1->Evaluate();
+
+        plane1->SetMethod(NXOpen::PlaneTypes::MethodTypeDistance);
+
+        std::vector<NXOpen::NXObject*> geom2(1);
+        geom2[0] = datumPlane1;
+        plane1->SetGeometry(geom2);
+
+        plane1->SetFlip(false);
+
+        plane1->SetReverseSide(false);
+
+        NXOpen::Expression* expression4;
+        expression4 = plane1->Expression();
+
+        expression4->SetRightHandSide("0");
+
+        plane1->SetAlternate(NXOpen::PlaneTypes::AlternateTypeOne);
+
+        plane1->Evaluate();
+
+        split_body = splitBodyBuilder1->Commit();
+
+        splitBodyBuilder1->BooleanTool()->ExtrudeRevolveTool()->ToolSection()->CleanMappingData();
+
+        splitBodyBuilder1->Destroy();
+
+    }
+
+
+
+    // ----------------------------------------------
+       //   Menu: Файл->Утилиты->Новый КЭ и симуляция...
+       // ----------------------------------------------
+
+    NXOpen::BasePart::Units units1;
+    units1 = workPart->PartUnits();
+
+    NXOpen::CAE::Xyplot::BaseTemplateManager* baseTemplateManager1;
+    baseTemplateManager1 = theSession->XYPlotManager()->TemplateManager();
+
+    // NXOpen::NXString path = workPart->FullPath();
+    std::string path = workPart->FullPath().GetText();
+    path = path.erase(path.size() - 4, 4);
+
+
+    NXOpen::BasePart* basePart1;
+    basePart1 = theSession->Parts()->NewBaseDisplay(path + "_fem1.fem", NXOpen::BasePart::UnitsMillimeters);
+
+    workPart = NULL;
+    NXOpen::CAE::FemPart* workFemPart(dynamic_cast<NXOpen::CAE::FemPart*>(theSession->Parts()->BaseWork()));
+    displayPart = NULL;
+    NXOpen::CAE::FemPart* displayFemPart(dynamic_cast<NXOpen::CAE::FemPart*>(theSession->Parts()->BaseDisplay()));
+    NXOpen::CAE::FemPart* femPart1(dynamic_cast<NXOpen::CAE::FemPart*>(workFemPart));
+    femPart1->PolygonGeometryMgr()->SetPolygonBodyResolutionOnFemBodies(NXOpen::CAE::PolygonGeometryManager::PolygonBodyResolutionTypeHigh);
+
+    NXOpen::CAE::FemPart* femPart2(dynamic_cast<NXOpen::CAE::FemPart*>(workFemPart));
+    NXOpen::CAE::FemCreationOptions* femCreationOptions1;
+    femCreationOptions1 = femPart2->NewFemCreationOptions();
+
+    NXOpen::CAE::FemPart* femPart3(dynamic_cast<NXOpen::CAE::FemPart*>(workFemPart));
+    NXOpen::CAE::FemSynchronizeOptions* femSynchronizeOptions1;
+    femSynchronizeOptions1 = femPart3->NewFemSynchronizeOptions();
+
+    femSynchronizeOptions1->SetSynchronizePointsFlag(false);
+
+    femSynchronizeOptions1->SetSynchronizeCreateMeshPointsFlag(false);
+
+    femSynchronizeOptions1->SetSynchronizeCoordinateSystemFlag(false);
+
+    femSynchronizeOptions1->SetSynchronizeLinesFlag(false);
+
+    femSynchronizeOptions1->SetSynchronizeArcsFlag(false);
+
+    femSynchronizeOptions1->SetSynchronizeSplinesFlag(false);
+
+    femSynchronizeOptions1->SetSynchronizeConicsFlag(false);
+
+    femSynchronizeOptions1->SetSynchronizeSketchCurvesFlag(false);
+
+    femSynchronizeOptions1->SetSynchronizeDplaneFlag(false);
+
+    // NXOpen::Part* part1(dynamic_cast<NXOpen::Part*>(theSession->Parts()->FindObject("model1")));
+    // femCreationOptions1->SetCadData(part1, "D:\\doc\\SCIENCE\\auto_models\\model1.prt");
+
+    femCreationOptions1->SetCadData(part1, path);
+
+    std::vector<NXOpen::Body*> bodies3(4);
+    NXOpen::Body* temp_body;
+
+    NXOpen::Features::BodyFeature* split_bodies(dynamic_cast<NXOpen::Features::BodyFeature*>(split_body));
+    std::vector <NXOpen::Face*> FaceAr2 = split_bodies->GetFaces();
+    temp_body = FaceAr2[0]->GetBody();
+    bodies3.push_back(temp_body);
+    for (int i = 0; i < FaceAr2.size(); i++) {
+
+        if (FaceAr2[i]->GetBody() != temp_body) {
+            bodies3.push_back(temp_body);
+        }
+    }
+
+
+    femCreationOptions1->SetGeometryOptions(NXOpen::CAE::FemCreationOptions::UseBodiesOptionVisibleBodies, bodies3, femSynchronizeOptions1);
+
+    femCreationOptions1->SetSolverOptions("NX NASTRAN", "Structural", NXOpen::CAE::BaseFemPart::AxisymAbstractionTypeNone);
+
+    std::vector<NXOpen::NXString> description1(0);
+    femCreationOptions1->SetDescription(description1);
+
+    femCreationOptions1->SetMorphingFlag(false);
+
+    NXOpen::CoordinateSystem* nullNXOpen_CoordinateSystem(NULL);
+    femCreationOptions1->SetCyclicSymmetryData(false, nullNXOpen_CoordinateSystem);
+
+    NXOpen::CAE::FemPart* femPart4(dynamic_cast<NXOpen::CAE::FemPart*>(workFemPart));
+    femPart4->FinalizeCreation(femCreationOptions1);
+
+    delete femSynchronizeOptions1;
+    delete femCreationOptions1;
+    NXOpen::CAE::Xyplot::BaseTemplateManager* baseTemplateManager2;
+    baseTemplateManager2 = theSession->XYPlotManager()->TemplateManager();
+
+    NXOpen::BasePart* basePart2;
+    basePart2 = theSession->Parts()->NewBaseDisplay(path + "_sim1.sim", NXOpen::BasePart::UnitsMillimeters);
+
+    NXOpen::CAE::SimPart* workSimPart(dynamic_cast<NXOpen::CAE::SimPart*>(theSession->Parts()->BaseWork()));
+    NXOpen::CAE::SimPart* displaySimPart(dynamic_cast<NXOpen::CAE::SimPart*>(theSession->Parts()->BaseDisplay()));
+    NXOpen::CAE::SimPart* simPart1(dynamic_cast<NXOpen::CAE::SimPart*>(workSimPart));
+    std::vector<NXOpen::NXString> description2(0);
+    simPart1->FinalizeCreation(femPart4, -1, description2);
+
+    workSimPart->ModelingViews()->WorkView()->Regenerate();
+
+
+
+
+    NXOpen::CAE::SimPart* simPart2(dynamic_cast<NXOpen::CAE::SimPart*>(workSimPart));
+
+    simSimulation1 = simPart2->Simulation();
+
+    NXOpen::CAE::SimSolution* simSolution2;
+    simSolution2 = simSimulation1->CreateSolution("NX NASTRAN", "Structural", "ADVNL 601,106", "Solution 1", NXOpen::CAE::SimSimulation::AxisymAbstractionTypeNone);
+
+    NXOpen::CAE::PropertyTable* propertyTable2;
+    propertyTable2 = simSolution2->PropertyTable();
+
+    NXOpen::CAE::CaePart* caePart3(dynamic_cast<NXOpen::CAE::CaePart*>(workSimPart));
+    NXOpen::CAE::ModelingObjectPropertyTable* modelingObjectPropertyTable3;
+    modelingObjectPropertyTable3 = caePart3->ModelingObjectPropertyTables()->CreateModelingObjectPropertyTable("Bulk Data Echo Request", "NX NASTRAN - Structural", "NX NASTRAN", "Bulk Data Echo Request1", 1);
+
+    NXOpen::CAE::CaePart* caePart4(dynamic_cast<NXOpen::CAE::CaePart*>(workSimPart));
+    NXOpen::CAE::ModelingObjectPropertyTable* modelingObjectPropertyTable4;
+    modelingObjectPropertyTable4 = caePart4->ModelingObjectPropertyTables()->CreateModelingObjectPropertyTable("Structural Output Requests", "NX NASTRAN - Structural", "NX NASTRAN", "Structural Output Requests1", 2);
+
+    NXOpen::CAE::PropertyTable* structOutputTable = modelingObjectPropertyTable4->PropertyTable();
+    structOutputTable->SetBooleanPropertyValue("Contact Result - Enable", true);
+
+    simSolution2->Rename("Solution 1", false);
+
+    NXOpen::CAE::PropertyTable* propertyTable3;
+    propertyTable3 = simSolution2->PropertyTable();
+
+    propertyTable3->SetNamedPropertyTablePropertyValue("Bulk Data Echo Request", modelingObjectPropertyTable3);
+
+    propertyTable3->SetNamedPropertyTablePropertyValue("Output Requests", modelingObjectPropertyTable4);
+
+    NXOpen::CAE::SimSolutionStep* simSolutionStep1(dynamic_cast<NXOpen::CAE::SimSolutionStep*>(simSolution2->FindObject("SolutionStep[Subcase - Nonlinear Implicit]")));
+    simSolution2->SetActiveStep(simSolutionStep1);
+    theSession->Parts()->SetWork(femPart4);
+
+    workFemPart = dynamic_cast<NXOpen::CAE::FemPart*>(theSession->Parts()->BaseWork()); // model1_fem1
+
+    //материал 
+
+    NXOpen::PhysMat::PhysicalMaterialListBuilder* physicalMaterialListBuilder1;
+    physicalMaterialListBuilder1 = workFemPart->MaterialManager()->PhysicalMaterials()->CreateListBlockBuilder();
+
+    NXOpen::PhysMat::PhysicalMaterialAssignBuilder* physicalMaterialAssignBuilder1;
+    physicalMaterialAssignBuilder1 = workFemPart->MaterialManager()->PhysicalMaterials()->CreateMaterialAssignBuilder();
+
+    NXOpen::PhysicalMaterial* physicalMaterial1(dynamic_cast<NXOpen::PhysicalMaterial*>(workFemPart->MaterialManager()->PhysicalMaterials()->LoadFromNxmatmllibrary("Steel")));
+    physicalMaterial1->AssignToAllBodies();
+
+    physicalMaterialAssignBuilder1->Destroy();
+
+    physicalMaterialListBuilder1->Destroy();
+
+    // ----------------------------------------------
+ //   Menu: Вставить->Сетка->3D тетраэдральная сетка...
+ // ----------------------------------------------
+
+    NXOpen::CAE::FEModel* fEModel1(dynamic_cast<NXOpen::CAE::FEModel*>(femPart4->BaseFEModel()));
+    NXOpen::CAE::MeshManager* meshManager1(dynamic_cast<NXOpen::CAE::MeshManager*>(fEModel1->Find("MeshManager")));
+    NXOpen::CAE::Mesh3d* nullNXOpen_CAE_Mesh3d(NULL);
+    NXOpen::CAE::Mesh3dTetBuilder* mesh3dTetBuilder1;
+    mesh3dTetBuilder1 = meshManager1->CreateMesh3dTetBuilder(nullNXOpen_CAE_Mesh3d);
+
+    NXOpen::CAE::MeshCollector* nullNXOpen_CAE_MeshCollector(NULL);
+    mesh3dTetBuilder1->ElementType()->DestinationCollector()->SetElementContainer(nullNXOpen_CAE_MeshCollector);
+
+    mesh3dTetBuilder1->ElementType()->SetElementTypeName("CTETRA(4)");
+
+    mesh3dTetBuilder1->ElementType()->DestinationCollector()->SetAutomaticMode(false);
+
+    mesh3dTetBuilder1->ElementType()->DestinationCollector()->SetAutomaticMode(true);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBooleanPropertyValue("mapped mesh option bool", false);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBooleanPropertyValue("two elements through thickness bool", true);
+
+
+    NXOpen::CAE::CAEBody* cAEBody1(dynamic_cast<NXOpen::CAE::CAEBody*>(workFemPart->FindObject("CAE_Body(1)")));
+    //NXOpen::CAE::CAEBody* cAEBody1(dynamic_cast<NXOpen::CAE::CAEBody*>(caeboidues[0]));
+    bool added1;
+    added1 = mesh3dTetBuilder1->SelectionList()->Add(cAEBody1);
+
+    NXOpen::CAE::CAEBody* cAEBody2(dynamic_cast<NXOpen::CAE::CAEBody*>(workFemPart->FindObject("CAE_Body(4)")));
+    bool added2;
+    added2 = mesh3dTetBuilder1->SelectionList()->Add(cAEBody2);
+
+    NXOpen::CAE::CAEBody* cAEBody3(dynamic_cast<NXOpen::CAE::CAEBody*>(workFemPart->FindObject("CAE_Body(3)")));
+    bool added3;
+    added3 = mesh3dTetBuilder1->SelectionList()->Add(cAEBody3);
+
+    NXOpen::CAE::CAEBody* cAEBody4(dynamic_cast<NXOpen::CAE::CAEBody*>(workFemPart->FindObject("CAE_Body(2)")));
+    bool added4;
+    added4 = mesh3dTetBuilder1->SelectionList()->Add(cAEBody4);
+
+
+    mesh3dTetBuilder1->SetAutoResetOption(false);
+
+    mesh3dTetBuilder1->ElementType()->SetElementDimension(NXOpen::CAE::ElementTypeBuilder::ElementTypeFreeSolid);
+
+    mesh3dTetBuilder1->ElementType()->SetElementTypeName("CTETRA(4)");
+
+    NXOpen::CAE::DestinationCollectorBuilder* destinationCollectorBuilder1;
+    destinationCollectorBuilder1 = mesh3dTetBuilder1->ElementType()->DestinationCollector();
+
+    destinationCollectorBuilder1->SetElementContainer(nullNXOpen_CAE_MeshCollector);
+
+    destinationCollectorBuilder1->SetAutomaticMode(true);
+
+    NXOpen::Unit* unit3(dynamic_cast<NXOpen::Unit*>(workFemPart->UnitCollection()->FindObject("MilliMeter")));
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("quad mesh overall edge size", mesh_size.c_str(), unit3);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBooleanPropertyValue("mapped mesh option bool", false);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBooleanPropertyValue("multiblock cylinder option bool", false);
+
+    mesh3dTetBuilder1->PropertyTable()->SetIntegerPropertyValue("fillet num elements", 3);
+
+    mesh3dTetBuilder1->PropertyTable()->SetIntegerPropertyValue("num elements on cylinder circumference", 6);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("element size on cylinder height", "1", unit3);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBooleanPropertyValue("create pyramids bool", false);
+
+    mesh3dTetBuilder1->PropertyTable()->SetIntegerPropertyValue("midnodes", 0);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBooleanPropertyValue("geometry tolerance option bool", false);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("geometry tolerance", "0", unit3);
+
+    NXOpen::Unit* nullNXOpen_Unit(NULL);
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("max jacobian", "10", nullNXOpen_Unit);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("surface mesh size variation", "50", nullNXOpen_Unit);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("volume mesh size variation", "50", nullNXOpen_Unit);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("internal mesh gradation", "1.05", nullNXOpen_Unit);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBooleanPropertyValue("internal max edge option bool", false);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("internal max edge length value", "0", unit3);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBooleanPropertyValue("two elements through thickness bool", true);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBooleanPropertyValue("mesh transition bool", false);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBooleanPropertyValue("remesh on bad quality bool", false);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBooleanPropertyValue("maximum edge length bool", false);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("maximum edge length", "1", unit3);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("small feature tolerance", "10", nullNXOpen_Unit);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("small feature value", "0.1", nullNXOpen_Unit);
+
+    mesh3dTetBuilder1->PropertyTable()->SetIntegerPropertyValue("boundary layer element type", 3);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBooleanPropertyValue("insert blend elements", true);
+
+    NXOpen::Unit* unit4(dynamic_cast<NXOpen::Unit*>(workFemPart->UnitCollection()->FindObject("Degrees")));
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("blending angle", "90", unit4);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("sweep angle", "45", unit4);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBooleanPropertyValue("control aspect ratio", false);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("maximum exposed aspect ratio", "1000", nullNXOpen_Unit);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBooleanPropertyValue("control slender", false);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("minimum aspect ratio", "0.01", nullNXOpen_Unit);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("maximum imprint dihedral angle", "150", unit4);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("gradation rate", "10", nullNXOpen_Unit);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("smoothing distance factor", "3", nullNXOpen_Unit);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBooleanPropertyValue("all-tet boundary layer", false);
+
+    mesh3dTetBuilder1->PropertyTable()->SetIntegerPropertyValue("dont format mesh to solver", 0);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("quad mesh edge match tolerance", "0.02", nullNXOpen_Unit);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("quad mesh smoothness tolerance", "0.01", unit3);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("min face angle", "20", unit4);
+
+    mesh3dTetBuilder1->PropertyTable()->SetIntegerPropertyValue("mesh time stamp", 0);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("quad mesh node coincidence tolerance", "0.0001", unit3);
+
+    mesh3dTetBuilder1->PropertyTable()->SetIntegerPropertyValue("mesh edit allowed", 0);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("edge angle", "15", unit4);
+
+    mesh3dTetBuilder1->PropertyTable()->SetIntegerPropertyValue("merge edge toggle", 0);
+
+    mesh3dTetBuilder1->PropertyTable()->SetIntegerPropertyValue("auto constraining", 1);
+
+    mesh3dTetBuilder1->PropertyTable()->SetIntegerPropertyValue("curvature scaling", 1);
+
+    mesh3dTetBuilder1->PropertyTable()->SetBaseScalarWithDataPropertyValue("target angle", "45", unit4);
+
+    mesh3dTetBuilder1->PropertyTable()->SetIntegerPropertyValue("edge shape", 2);
+
+    std::vector<NXOpen::CAE::Mesh*> meshes1;
+    meshes1 = mesh3dTetBuilder1->CommitMesh();
+
+
+    mesh3dTetBuilder1->Destroy();
+
+
+    // ----------------------------------------------
+//   Menu: Вставить->Сетка->1D соединения...
+// ----------------------------------------------
+
+
+    std::vector<NXOpen::DisplayableObject*> mesh1d_objs;
+    std::vector<NXOpen::DisplayableObject*> contact_surface1_objs;
+    std::vector<NXOpen::DisplayableObject*> contact_surface2_objs;
+    std::vector<NXOpen::DisplayableObject*> constraint_objs;
+    //NXOpen::NXObject* mesh1d;
+    //{
+    //    NXOpen::CAE::FEModel* fEModel1(dynamic_cast<NXOpen::CAE::FEModel*>(workFemPart->FindObject("FEModel")));
+    //    NXOpen::CAE::CAEConnection* nullNXOpen_CAE_CAEConnection(NULL);
+    //    NXOpen::CAE::CAEConnectionBuilder* cAEConnectionBuilder1;
+    //    cAEConnectionBuilder1 = fEModel1->CaeConnections()->CreateConnectionBuilder(nullNXOpen_CAE_CAEConnection);
+
+    //    NXOpen::CAE::MeshCollector* nullNXOpen_CAE_MeshCollector(NULL);
+    //    cAEConnectionBuilder1->ElementType()->DestinationCollector()->SetElementContainer(nullNXOpen_CAE_MeshCollector);
+
+    //    cAEConnectionBuilder1->ElementTypeRbe3()->DestinationCollector()->SetElementContainer(nullNXOpen_CAE_MeshCollector);
+
+    //    cAEConnectionBuilder1->ElementType()->SetElementDimension(NXOpen::CAE::ElementTypeBuilder::ElementTypeConnection);
+
+    //    cAEConnectionBuilder1->ElementTypeRbe3()->SetElementDimension(NXOpen::CAE::ElementTypeBuilder::ElementTypeSpider);
+
+    //    NXOpen::CAE::MeshManager* meshManager1(dynamic_cast<NXOpen::CAE::MeshManager*>(fEModel1->Find("MeshManager")));
+    //    NXOpen::CAE::MeshCollectorBuilder* meshCollectorBuilder1;
+    //    meshCollectorBuilder1 = meshManager1->CreateCollectorBuilder(nullNXOpen_CAE_MeshCollector, "Rigid Link Collector");
+
+    //    meshCollectorBuilder1->SetCollectorName("RBE2 Collector(1)");
+
+    //    NXOpen::NXObject* nXObject2;
+    //    nXObject2 = meshCollectorBuilder1->Commit();
+
+
+    //    meshCollectorBuilder1->Destroy();
+
+    //    NXOpen::CAE::MeshCollector* meshCollector1(dynamic_cast<NXOpen::CAE::MeshCollector*>(nXObject2));
+    //    cAEConnectionBuilder1->ElementType()->DestinationCollector()->SetElementContainer(meshCollector1);
+
+
+    //    cAEConnectionBuilder1->ElementTypeRbe3()->DestinationCollector()->SetElementContainer(meshCollector1);
+
+
+    //    cAEConnectionBuilder1->SetMidNode(true);
+
+    //    cAEConnectionBuilder1->SetType(NXOpen::CAE::CAEConnectionBuilder::ConnectionTypeEnumPointToFace);
+
+    //    cAEConnectionBuilder1->ElementType()->SetElementTypeName("RBE2");
+
+    //    cAEConnectionBuilder1->ElementType()->DestinationCollector()->SetElementContainer(meshCollector1);
+
+    //    cAEConnectionBuilder1->ElementTypeRbe3()->SetElementTypeName("RBE2");
+
+    //    cAEConnectionBuilder1->SetLabel(2084855);
+
+    //    cAEConnectionBuilder1->ElementType()->SetElementTypeName("RBE2");
+
+
+    //    NXOpen::Unit* unit1(dynamic_cast<NXOpen::Unit*>(workFemPart->UnitCollection()->FindObject("MilliMeter")));
+    //    NXOpen::Expression* expression1;
+    //    expression1 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("0", unit1);
+
+    //    NXOpen::Expression* expression2;
+    //    expression2 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p1_x=0.00000000000", unit1);
+
+    //    NXOpen::Expression* expression3;
+    //    expression3 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p2_y=0.00000000000", unit1);
+
+    //    NXOpen::Expression* expression4;
+    //    expression4 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p3_z=0.00000000000", unit1);
+
+    //    NXOpen::Expression* expression5;
+    //    expression5 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p4_xdelta=0.00000000000", unit1);
+
+    //    NXOpen::Expression* expression6;
+    //    expression6 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p5_ydelta=0.00000000000", unit1);
+
+    //    NXOpen::Expression* expression7;
+    //    expression7 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p6_zdelta=0.00000000000", unit1);
+
+    //    NXOpen::Expression* expression8;
+    //    expression8 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p7_radius=0.00000000000", unit1);
+
+    //    NXOpen::Unit* unit2(dynamic_cast<NXOpen::Unit*>(workFemPart->UnitCollection()->FindObject("Degrees")));
+    //    NXOpen::Expression* expression9;
+    //    expression9 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p8_angle=0.00000000000", unit2);
+
+    //    NXOpen::Expression* expression10;
+    //    expression10 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p9_zdelta=0.00000000000", unit1);
+
+    //    NXOpen::Expression* expression11;
+    //    expression11 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p10_radius=0.00000000000", unit1);
+
+    //    NXOpen::Expression* expression12;
+    //    expression12 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p11_angle1=0.00000000000", unit2);
+
+    //    NXOpen::Expression* expression13;
+    //    expression13 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p12_angle2=0.00000000000", unit2);
+
+    //    NXOpen::Expression* expression14;
+    //    expression14 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p13_distance=0", unit1);
+
+    //    NXOpen::Expression* expression15;
+    //    expression15 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p14_arclen=0", unit1);
+
+    //    NXOpen::Unit* nullNXOpen_Unit(NULL);
+    //    NXOpen::Expression* expression16;
+    //    expression16 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p15_percent=0", nullNXOpen_Unit);
+
+    //    expression2->SetFormula("0");
+
+    //    expression3->SetFormula("0");
+
+    //    expression4->SetFormula("-50");
+
+    //    expression5->SetFormula("0");
+
+    //    expression6->SetFormula("0");
+
+    //    expression7->SetFormula("0");
+
+    //    expression8->SetFormula("0");
+
+    //    expression9->SetFormula("0");
+
+    //    expression10->SetFormula("0");
+
+    //    expression11->SetFormula("0");
+
+    //    expression12->SetFormula("0");
+
+    //    expression13->SetFormula("0");
+
+    //    expression14->SetFormula("0");
+
+    //    expression16->SetFormula("100");
+
+    //    expression15->SetFormula("0");
+
+
+    //    NXOpen::Expression* expression17;
+    //    expression17 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p16_x=0.00000000000", unit1);
+
+    //    NXOpen::Scalar* scalar1;
+    //    scalar1 = workFemPart->Scalars()->CreateScalarExpression(expression17, NXOpen::Scalar::DimensionalityTypeNone, NXOpen::SmartObject::UpdateOptionAfterModeling);
+
+    //    NXOpen::Expression* expression18;
+    //    expression18 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p17_y=0.00000000000", unit1);
+
+    //    NXOpen::Scalar* scalar2;
+    //    scalar2 = workFemPart->Scalars()->CreateScalarExpression(expression18, NXOpen::Scalar::DimensionalityTypeNone, NXOpen::SmartObject::UpdateOptionAfterModeling);
+
+    //    NXOpen::Expression* expression19;
+    //    expression19 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p18_z=0.00000000000", unit1);
+
+    //    NXOpen::Scalar* scalar3;
+    //    scalar3 = workFemPart->Scalars()->CreateScalarExpression(expression19, NXOpen::Scalar::DimensionalityTypeNone, NXOpen::SmartObject::UpdateOptionAfterModeling);
+
+    //    NXOpen::Point* point1;
+    //    point1 = workFemPart->Points()->CreatePoint(scalar1, scalar2, scalar3, NXOpen::SmartObject::UpdateOptionAfterModeling);
+
+    //    expression4->SetFormula("0");
+
+    //    expression2->SetFormula("0.00000000000");
+
+    //    expression3->SetFormula("0.00000000000");
+
+    //    expression4->SetFormula("0.00000000000");
+
+    //    expression2->SetFormula("0");
+
+    //    expression3->SetFormula("0");
+
+    //    expression4->SetFormula("0");
+
+    //    expression2->SetFormula("0.00000000000");
+
+    //    expression3->SetFormula("0.00000000000");
+
+    //    expression4->SetFormula("0.00000000000");
+
+    //    expression5->SetFormula("0.00000000000");
+
+    //    expression6->SetFormula("0.00000000000");
+
+    //    expression7->SetFormula("0.00000000000");
+
+    //    expression8->SetFormula("0.00000000000");
+
+    //    expression9->SetFormula("0.00000000000");
+
+    //    expression10->SetFormula("0.00000000000");
+
+    //    expression11->SetFormula("0.00000000000");
+
+    //    expression12->SetFormula("0.00000000000");
+
+    //    expression13->SetFormula("0.00000000000");
+
+    //    expression16->SetFormula("100.00000000000");
+
+    //    // ----------------------------------------------
+    //    //   Dialog Begin Point
+    //    // ----------------------------------------------
+    //    expression4->SetFormula("-50");
+
+    //    workFemPart->Points()->DeletePoint(point1);
+
+    //    expression2->SetRightHandSide("0.00000000000");
+
+    //    expression3->SetRightHandSide("0.00000000000");
+
+    //    expression4->SetRightHandSide("-50");
+
+    //    NXOpen::Expression* expression20;
+    //    expression20 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p3_x=0.00000000000", unit1);
+
+    //    NXOpen::Scalar* scalar4;
+    //    scalar4 = workFemPart->Scalars()->CreateScalarExpression(expression20, NXOpen::Scalar::DimensionalityTypeNone, NXOpen::SmartObject::UpdateOptionAfterModeling);
+
+    //    NXOpen::Expression* expression21;
+    //    expression21 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p4_y=0.00000000000", unit1);
+
+    //    NXOpen::Scalar* scalar5;
+    //    scalar5 = workFemPart->Scalars()->CreateScalarExpression(expression21, NXOpen::Scalar::DimensionalityTypeNone, NXOpen::SmartObject::UpdateOptionAfterModeling);
+
+    //    NXOpen::Expression* expression22;
+    //    expression22 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p5_z=-50", unit1);
+
+    //    NXOpen::Scalar* scalar6;
+    //    scalar6 = workFemPart->Scalars()->CreateScalarExpression(expression22, NXOpen::Scalar::DimensionalityTypeNone, NXOpen::SmartObject::UpdateOptionAfterModeling);
+
+    //    NXOpen::Point* point2;
+    //    point2 = workFemPart->Points()->CreatePoint(scalar4, scalar5, scalar6, NXOpen::SmartObject::UpdateOptionAfterModeling);
+
+
+
+    //    expression2->SetRightHandSide("0.00000000000");
+
+    //    expression3->SetRightHandSide("0.00000000000");
+
+    //    expression4->SetRightHandSide("-50");
+
+    //    workFemPart->Points()->DeletePoint(point2);
+
+    //    NXOpen::Expression* expression23;
+    //    expression23 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p3_x=0.00000000000", unit1);
+
+    //    NXOpen::Scalar* scalar7;
+    //    scalar7 = workFemPart->Scalars()->CreateScalarExpression(expression23, NXOpen::Scalar::DimensionalityTypeNone, NXOpen::SmartObject::UpdateOptionAfterModeling);
+
+    //    NXOpen::Expression* expression24;
+    //    expression24 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p4_y=0.00000000000", unit1);
+
+    //    NXOpen::Scalar* scalar8;
+    //    scalar8 = workFemPart->Scalars()->CreateScalarExpression(expression24, NXOpen::Scalar::DimensionalityTypeNone, NXOpen::SmartObject::UpdateOptionAfterModeling);
+
+    //    NXOpen::Expression* expression25;
+    //    expression25 = workFemPart->Expressions()->CreateSystemExpressionWithUnits("p5_z=-50", unit1);
+
+    //    NXOpen::Scalar* scalar9;
+    //    scalar9 = workFemPart->Scalars()->CreateScalarExpression(expression25, NXOpen::Scalar::DimensionalityTypeNone, NXOpen::SmartObject::UpdateOptionAfterModeling);
+
+    //    NXOpen::Point* point3;
+    //    point3 = workFemPart->Points()->CreatePoint(scalar7, scalar8, scalar9, NXOpen::SmartObject::UpdateOptionAfterModeling);
+
+
+    //    try
+    //    {
+    //        // Выражение используется
+    //        workFemPart->Expressions()->Delete(expression2);
+    //    }
+    //    catch (const NXOpen::NXException& ex)
+    //    {
+    //        ex.AssertErrorCode(1050029);
+    //    }
+
+    //    try
+    //    {
+    //        // Выражение используется
+    //        workFemPart->Expressions()->Delete(expression3);
+    //    }
+    //    catch (const NXOpen::NXException& ex)
+    //    {
+    //        ex.AssertErrorCode(1050029);
+    //    }
+
+    //    try
+    //    {
+    //        // Выражение используется
+    //        workFemPart->Expressions()->Delete(expression4);
+    //    }
+    //    catch (const NXOpen::NXException& ex)
+    //    {
+    //        ex.AssertErrorCode(1050029);
+    //    }
+
+    //    try
+    //    {
+    //        // Выражение используется
+    //        workFemPart->Expressions()->Delete(expression5);
+    //    }
+    //    catch (const NXOpen::NXException& ex)
+    //    {
+    //        ex.AssertErrorCode(1050029);
+    //    }
+
+    //    try
+    //    {
+    //        // Выражение используется
+    //        workFemPart->Expressions()->Delete(expression6);
+    //    }
+    //    catch (const NXOpen::NXException& ex)
+    //    {
+    //        ex.AssertErrorCode(1050029);
+    //    }
+
+    //    try
+    //    {
+    //        // Выражение используется
+    //        workFemPart->Expressions()->Delete(expression7);
+    //    }
+    //    catch (const NXOpen::NXException& ex)
+    //    {
+    //        ex.AssertErrorCode(1050029);
+    //    }
+
+    //    try
+    //    {
+    //        // Выражение используется
+    //        workFemPart->Expressions()->Delete(expression8);
+    //    }
+    //    catch (const NXOpen::NXException& ex)
+    //    {
+    //        ex.AssertErrorCode(1050029);
+    //    }
+
+    //    try
+    //    {
+    //        // Выражение используется
+    //        workFemPart->Expressions()->Delete(expression9);
+    //    }
+    //    catch (const NXOpen::NXException& ex)
+    //    {
+    //        ex.AssertErrorCode(1050029);
+    //    }
+
+    //    try
+    //    {
+    //        // Выражение используется
+    //        workFemPart->Expressions()->Delete(expression10);
+    //    }
+    //    catch (const NXOpen::NXException& ex)
+    //    {
+    //        ex.AssertErrorCode(1050029);
+    //    }
+
+    //    try
+    //    {
+    //        // Выражение используется
+    //        workFemPart->Expressions()->Delete(expression11);
+    //    }
+    //    catch (const NXOpen::NXException& ex)
+    //    {
+    //        ex.AssertErrorCode(1050029);
+    //    }
+
+    //    try
+    //    {
+    //        // Выражение используется
+    //        workFemPart->Expressions()->Delete(expression12);
+    //    }
+    //    catch (const NXOpen::NXException& ex)
+    //    {
+    //        ex.AssertErrorCode(1050029);
+    //    }
+
+    //    try
+    //    {
+    //        // Выражение используется
+    //        workFemPart->Expressions()->Delete(expression13);
+    //    }
+    //    catch (const NXOpen::NXException& ex)
+    //    {
+    //        ex.AssertErrorCode(1050029);
+    //    }
+
+    //    try
+    //    {
+    //        // Выражение используется
+    //        workFemPart->Expressions()->Delete(expression14);
+    //    }
+    //    catch (const NXOpen::NXException& ex)
+    //    {
+    //        ex.AssertErrorCode(1050029);
+    //    }
+
+    //    try
+    //    {
+    //        // Выражение используется
+    //        workFemPart->Expressions()->Delete(expression15);
+    //    }
+    //    catch (const NXOpen::NXException& ex)
+    //    {
+    //        ex.AssertErrorCode(1050029);
+    //    }
+
+    //    try
+    //    {
+    //        // Выражение используется
+    //        workFemPart->Expressions()->Delete(expression16);
+    //    }
+    //    catch (const NXOpen::NXException& ex)
+    //    {
+    //        ex.AssertErrorCode(1050029);
+    //    }
+
+    //    workFemPart->Expressions()->Delete(expression1);
+
+
+    //    NXOpen::Point3d point4(0.0, 0.0, -50.0);
+    //    bool added1;
+    //    added1 = cAEConnectionBuilder1->SourceSelection()->Add(point3, displaySimPart->ModelingViews()->WorkView(), point4);
+
+
+    //    //синхронизация CAD-свойств
+    //    NXOpen::CAE::BodyCollection* caeBodies(workFemPart->Bodies());
+
+    //    for (auto it = caeBodies->begin(); it != caeBodies->end(); it++)
+    //    {
+    //        (*it)->SynchronizeCadProperties();
+    //    }
+
+    //    //выбор граней по цвету
+    //    tag_t objTag = NULL_TAG;
+    //    NXOpen::DisplayableObject* obj;
+    //    int obj_type;
+    //    int obj_subtype;
+
+
+    //    UF_OBJ_cycle_objs_in_part(workFemPart->Tag(), UF_caegeom_type, &objTag);
+
+    //    do {
+    //        UF_OBJ_ask_type_and_subtype(objTag, &obj_type, &obj_subtype);
+    //        if (obj_subtype == UF_caegeom_face_subtype) {
+    //            obj = dynamic_cast<NXOpen::DisplayableObject*> (NXOpen::NXObjectManager::Get(objTag));
+    //            if (obj->Color() == 108) {
+    //                mesh1d_objs.push_back(obj);
+    //            }
+
+
+
+
+    //            //UF_MODL_ask_face_type(objTag, &type_face);
+    //            //if (type_face == UF_MODL_CYLINDRICAL_FACE) i++;
+    //        }
+    //        UF_OBJ_cycle_objs_in_part(workFemPart->Tag(), UF_caegeom_type, &objTag);
+    //    } while (objTag != NULL_TAG);
+
+
+    //    bool added2;
+    //    added2 = cAEConnectionBuilder1->TargetSelection()->Add(mesh1d_objs[0]);
+
+
+    //    bool added3;
+    //    added3 = cAEConnectionBuilder1->TargetSelection()->Add(mesh1d_objs[1]);
+
+
+    //    cAEConnectionBuilder1->ElementType()->SetElementTypeName("RBE2");
+
+    //    cAEConnectionBuilder1->SetNodeFaceProximity(0.0);
+
+    //    cAEConnectionBuilder1->SetSearchDistance(82.462113193446598);
+
+
+    //    mesh1d = cAEConnectionBuilder1->Commit();
+
+
+    //    cAEConnectionBuilder1->Destroy();     }
+
+    //simulation
+
+              // NXOpen::CAE::SimPart* simPart1(dynamic_cast<NXOpen::CAE::SimPart*>(displaySimPart));
+    NXOpen::PartLoadStatus* partLoadStatus1;
+    NXOpen::PartCollection::SdpsStatus status1;
+    status1 = theSession->Parts()->SetActiveDisplay(simPart1, NXOpen::DisplayPartOptionAllowAdditional, NXOpen::PartDisplayPartWorkPartOptionSameAsDisplay, &partLoadStatus1);
+
+    // NXOpen::CAE::SimPart* workSimPart(dynamic_cast<NXOpen::CAE::SimPart*>(theSession->Parts()->BaseWork()));
+    delete partLoadStatus1;
+    NXOpen::CAE::CaePart* caePart1(dynamic_cast<NXOpen::CAE::CaePart*>(workSimPart));
+
+    //NXOpen::CAE::SimSimulation* simSimulation1;
+    simSimulation1 = simPart1->Simulation();
+
+    NXOpen::CAE::SimBCBuilder* simBCBuilder1;
+    simBCBuilder1 = simSimulation1->CreateBcBuilderForSimulationObjectDescriptor("Manual Surface to Surface Contact", "Face Contact(1)", 1);
+
+    NXOpen::CAE::PropertyTable* contact_property;
+    contact_property = simBCBuilder1->PropertyTable();
+
+    NXOpen::CAE::SetManager* setManager1;
+    setManager1 = simBCBuilder1->TargetSetManager();
+
+
+
+    NXOpen::CAE::CaeRegion* nullNXOpen_CAE_CaeRegion(NULL);
+    NXOpen::CAE::CaeRegionBuilder* caeRegionBuilder1;
+    caeRegionBuilder1 = simSimulation1->CreateCaeRegionBuilder("Region", nullNXOpen_CAE_CaeRegion);
+
+    NXOpen::CAE::SetManager* setManagerRegion1;
+    setManagerRegion1 = caeRegionBuilder1->TargetSetManager();
+
+    tag_t objTag = NULL_TAG;
+    NXOpen::DisplayableObject* obj;
+    int obj_type;
+    int obj_subtype;
+    std::vector<NXOpen::DisplayableObject*> postResultSurfaces;
+    UF_OBJ_cycle_objs_in_part(workSimPart->Tag(), UF_caegeom_type, &objTag);
+
+    do {
+        UF_OBJ_ask_type_and_subtype(objTag, &obj_type, &obj_subtype);
+        if (obj_subtype == UF_caegeom_face_subtype) {
+            obj = dynamic_cast<NXOpen::DisplayableObject*> (NXOpen::NXObjectManager::Get(objTag));
+
+            if ((obj->Color() == 6) or (obj->Color() == 36)) {
+                if (obj->Color() == 6) postResultSurfaces.push_back(obj);
+                contact_surface1_objs.push_back(obj);
+            }
+            if (obj->Color() == 83) {
+                contact_surface2_objs.push_back(obj);
+            }
+            if (obj->Color() == 211) {
+                constraint_objs.push_back(obj);
+            }
+
+
+
+            //UF_MODL_ask_face_type(objTag, &type_face);
+            //if (type_face == UF_MODL_CYLINDRICAL_FACE) i++;
+        }
+        UF_OBJ_cycle_objs_in_part(workSimPart->Tag(), UF_caegeom_type, &objTag);
+    } while (objTag != NULL_TAG);
+
+
+    NXOpen::UI* theUI = NXOpen::UI::GetUI();
+
+    //выделение узлов КЭ сетки по граням
+    std::vector <NXOpen::CAE::FENode*> nodesObject1;
+    std::vector <NXOpen::CAE::FENode*> nodesObject2;
+
+    // std::vector <int> intnodesObject2;
+      //  NXOpen::CAE::FEElemFace* postResultSurfacesElement(dynamic_cast<NXOpen::CAE::FEElemFace*>(postResultSurfaces[0]));
+       // postResultSurfacesElement->GetElementsAndFaceIds(intnodesObject2);
+       // theUI->NXMessageBox()->Show("face_ids", NXOpen::NXMessageBox::DialogTypeInformation, std::to_string(intnodesObject2[0]));
+        // nodesObject1 = postResultSurfacesElement->GetNodes();
+
+       //  NXOpen::CAE::FEElement* postResultSurfacesElement2(dynamic_cast<NXOpen::CAE::FEElement*>(postResultSurfaces[1]));
+        // nodesObject2 = postResultSurfacesElement2->GetNodes();
+        // NXOpen::CAE::FEElemFace* fdf;
+        // fdf->GetElementsAndFaceIds();
+    std::vector<NXOpen::CAE::CAEFace*> seeds1(2);
+    seeds1[0] = dynamic_cast<NXOpen::CAE::CAEFace*>(postResultSurfaces[0]);
+    seeds1[1] = dynamic_cast<NXOpen::CAE::CAEFace*>(postResultSurfaces[1]);
+    NXOpen::CAE::RelatedNodeMethod* relatedNodeMethod1;
+    relatedNodeMethod1 = caePart1->SmartSelectionMgr()->CreateRelatedNodeMethod(seeds1, true);
+    nodesObject1 = relatedNodeMethod1->GetNodes();
+    /*
+    string nodStr;
+    for (int i = 0; i < 3; i++) {
+        nodStr += std::to_string(nodesObject1[i]->Label());
+    }*/
+    // theUI->NXMessageBox()->Show("face_ids", NXOpen::NXMessageBox::DialogTypeInformation, std::to_string(nodesObject1.size()));
+
+    int counter = 0;
+    for (auto& face : contact_surface1_objs) {
+
+        counter++;
+    }
+    std::vector<NXOpen::CAE::SetObject> objects1(counter);
+    for (int i = 0; i < counter; i++) {
+
+        NXOpen::CAE::CAEFace* region_face(dynamic_cast<NXOpen::CAE::CAEFace*>(contact_surface1_objs[i]));
+        //objects1.push_back({ region_face, NXOpen::CAE::CaeSetObjectSubTypeNone,counter });
+        objects1[i].Obj = region_face;
+        objects1[i].SubType = NXOpen::CAE::CaeSetObjectSubTypeNone;
+        objects1[i].SubId = 0;
+
+    }
+
+
+
+
+
+
+    setManagerRegion1->SetTargetSetMembers(0, NXOpen::CAE::CaeSetGroupFilterTypeGeomFace, objects1);
+
+    NXOpen::NXObject* region1;
+    region1 = caeRegionBuilder1->Commit();
+
+
+
+
+    NXOpen::CAE::CaeRegionBuilder* caeRegionBuilder2;
+    caeRegionBuilder2 = simSimulation1->CreateCaeRegionBuilder("Region", nullNXOpen_CAE_CaeRegion);
+    std::vector<NXOpen::CAE::SetObject> objects2;
+
+    NXOpen::CAE::SetManager* setManagerRegion2;
+    setManagerRegion2 = caeRegionBuilder2->TargetSetManager();
+
+    counter = 0;
+    for (auto& face : contact_surface2_objs) {
+
+        NXOpen::CAE::CAEFace* cAEFace1(dynamic_cast<NXOpen::CAE::CAEFace*>(face));
+        objects2.push_back({ cAEFace1, NXOpen::CAE::CaeSetObjectSubTypeNone,0 });
+
+    }
+    setManagerRegion2->SetTargetSetMembers(0, NXOpen::CAE::CaeSetGroupFilterTypeGeomFace, objects2);
+
+    NXOpen::NXObject* region2;
+    region2 = caeRegionBuilder2->Commit();
+
+    NXOpen::CAE::ModelingObjectPropertyTable* modelingObjectPropertyTable1;
+    modelingObjectPropertyTable1 = caePart1->ModelingObjectPropertyTables()->CreateModelingObjectPropertyTable("Contact Set Parameters", "NX NASTRAN - Structural", "NX NASTRAN", "Contact Parameters - Advanced Nonlinear Pair1", 3);
+
+    NXOpen::CAE::PropertyTable* propertyTableAdvNonLin;
+    propertyTableAdvNonLin = modelingObjectPropertyTable1->PropertyTable();
+
+    NXOpen::Unit* second(dynamic_cast<NXOpen::Unit*>(workSimPart->UnitCollection()->FindObject("Second")));
+    propertyTableAdvNonLin->SetBaseScalarWithDataPropertyValue("TZPENE", "1", second);
+
+    NXOpen::Unit* cfactor_unit(dynamic_cast<NXOpen::Unit*>(workSimPart->UnitCollection()->FindObject("MilliMeterCubedPerMilliNewton")));
+    propertyTableAdvNonLin->SetBaseScalarWithDataPropertyValue("CFACTOR1", cfactor.str(), cfactor_unit);
+    propertyTableAdvNonLin->SetIntegerPropertyValue("SEGNORM", -1);
+
+
+
+
+
+    NXOpen::CAE::CaeRegion* caeRegion1(dynamic_cast<NXOpen::CAE::CaeRegion*>(region1));
+    contact_property->SetReferencePropertyValue("Source Region", caeRegion1);
+
+    NXOpen::CAE::CaeRegion* caeRegion2(dynamic_cast<NXOpen::CAE::CaeRegion*>(region2));
+    contact_property->SetReferencePropertyValue("Target Region", caeRegion2);
+
+    NXOpen::Fields::ScalarFieldWrapper* scalarFieldWrapper1;
+    scalarFieldWrapper1 = contact_property->GetScalarFieldWrapperPropertyValue("static friction coefficient");
+
+    NXOpen::Expression* expression2;
+    expression2 = scalarFieldWrapper1->GetExpression();
+
+    expression2->SetRightHandSide("0.13");
+
+    scalarFieldWrapper1->SetExpression(expression2);
+
+    contact_property->SetScalarFieldWrapperPropertyValue("static friction coefficient", scalarFieldWrapper1);
+
+    NXOpen::Fields::Field* field1;
+    field1 = scalarFieldWrapper1->GetField();
+
+    NXOpen::Fields::ScalarFieldWrapper* scalarFieldWrapper2;
+    scalarFieldWrapper2 = contact_property->GetScalarFieldWrapperPropertyValue("Min Search Distance");
+
+    NXOpen::Expression* expression3;
+    expression3 = scalarFieldWrapper2->GetExpression();
+
+    NXOpen::Unit* millimeter(dynamic_cast<NXOpen::Unit*>(workSimPart->UnitCollection()->FindObject("MilliMeter")));
+    workSimPart->Expressions()->EditWithUnits(expression3, millimeter, "-0.3");
+
+    scalarFieldWrapper2->SetExpression(expression3);
+
+    contact_property->SetScalarFieldWrapperPropertyValue("Min Search Distance", scalarFieldWrapper2);
+
+    NXOpen::Fields::Field* field2;
+    field2 = scalarFieldWrapper2->GetField();
+
+    NXOpen::Fields::ScalarFieldWrapper* scalarFieldWrapper3;
+    scalarFieldWrapper3 = contact_property->GetScalarFieldWrapperPropertyValue("Max Search Distance");
+
+    NXOpen::Expression* expression4;
+    expression4 = scalarFieldWrapper3->GetExpression();
+
+    workSimPart->Expressions()->EditWithUnits(expression4, millimeter, "0.3");
+
+    scalarFieldWrapper3->SetExpression(expression4);
+
+    contact_property->SetScalarFieldWrapperPropertyValue("Max Search Distance", scalarFieldWrapper3);
+
+    NXOpen::Fields::Field* field3;
+    field3 = scalarFieldWrapper3->GetField();
+
+    contact_property->SetNamedPropertyTablePropertyValue("Contact Set Parameters", modelingObjectPropertyTable1);
+
+    std::vector<NXOpen::NXString> propertyValue1(0);
+    contact_property->SetTextPropertyValue("description", propertyValue1);
+
+    NXOpen::CAE::SimLbcFolder* nullNXOpen_CAE_SimLbcFolder(NULL);
+    simBCBuilder1->SetDestinationFolder(nullNXOpen_CAE_SimLbcFolder);
+
+    NXOpen::CAE::SimBC* simBC1;
+    simBC1 = simBCBuilder1->CommitAddBc();
+
+    simBCBuilder1->Destroy();
+
+    //заделка
+    NXOpen::CAE::SimBCBuilder* fixedBuilder;
+    fixedBuilder = simSimulation1->CreateBcBuilderForConstraintDescriptor("fixedConstraint", "Fixed(1)", 1);
+
+    NXOpen::CAE::PropertyTable* propertyTable4;
+    propertyTable4 = fixedBuilder->PropertyTable();
+
+    NXOpen::CAE::SetManager* setManagerFixed;
+    setManagerFixed = fixedBuilder->TargetSetManager();
+
+    NXOpen::Fields::FieldExpression* fieldExpression1;
+    fieldExpression1 = propertyTable4->GetScalarFieldPropertyValue("DOF1");
+
+    NXOpen::Fields::FieldExpression* fieldExpression2;
+    fieldExpression2 = propertyTable4->GetScalarFieldPropertyValue("DOF2");
+
+    NXOpen::Fields::FieldExpression* fieldExpression3;
+    fieldExpression3 = propertyTable4->GetScalarFieldPropertyValue("DOF3");
+
+    NXOpen::Fields::FieldExpression* fieldExpression4;
+    fieldExpression4 = propertyTable4->GetScalarFieldPropertyValue("DOF4");
+
+    NXOpen::Fields::FieldExpression* fieldExpression5;
+    fieldExpression5 = propertyTable4->GetScalarFieldPropertyValue("DOF5");
+
+    NXOpen::Fields::FieldExpression* fieldExpression6;
+    fieldExpression6 = propertyTable4->GetScalarFieldPropertyValue("DOF6");
+
+
+    // ----------------------------------------------
+    //   Dialog Begin Fixed Constraint
+    // ----------------------------------------------
+    NXOpen::Session::UndoMarkId markId31;
+    markId31 = theSession->SetUndoMark(NXOpen::Session::MarkVisibilityInvisible, NXOpen::NXString("\320\227\320\260\320\264\320\265\320\273\320\272\320\260", NXOpen::NXString::UTF8));
+
+    theSession->DeleteUndoMark(markId31, NULL);
+
+    NXOpen::Session::UndoMarkId markId32;
+    markId32 = theSession->SetUndoMark(NXOpen::Session::MarkVisibilityInvisible, NXOpen::NXString("\320\227\320\260\320\264\320\265\320\273\320\272\320\260", NXOpen::NXString::UTF8));
+
+    std::vector<NXOpen::CAE::SetObject> objects9(2);
+    NXOpen::CAE::CAEFace* cAEFace101(dynamic_cast<NXOpen::CAE::CAEFace*>(constraint_objs[0]));
+    objects9[0].Obj = cAEFace101;
+    objects9[0].SubType = NXOpen::CAE::CaeSetObjectSubTypeNone;
+    objects9[0].SubId = 0;
+    NXOpen::CAE::CAEFace* cAEFace102(dynamic_cast<NXOpen::CAE::CAEFace*>(constraint_objs[1]));
+    objects9[1].Obj = cAEFace102;
+    objects9[1].SubType = NXOpen::CAE::CaeSetObjectSubTypeNone;
+    objects9[1].SubId = 0;
+    setManagerFixed->SetTargetSetMembers(0, NXOpen::CAE::CaeSetGroupFilterTypeGeomFace, objects9);
+
+    NXOpen::Unit* degree(dynamic_cast<NXOpen::Unit*>(workSimPart->UnitCollection()->FindObject("Degrees")));
+
+    std::vector<NXOpen::Fields::FieldVariable*> indepVarArray2(0);
+    fieldExpression1->EditFieldExpression("0", millimeter, indepVarArray2, false);
+
+    propertyTable4->SetScalarFieldPropertyValue("DOF1", fieldExpression1);
+
+    std::vector<NXOpen::Fields::FieldVariable*> indepVarArray3(0);
+    fieldExpression2->EditFieldExpression("0", millimeter, indepVarArray3, false);
+
+    propertyTable4->SetScalarFieldPropertyValue("DOF2", fieldExpression2);
+
+    std::vector<NXOpen::Fields::FieldVariable*> indepVarArray4(0);
+    fieldExpression3->EditFieldExpression("0", millimeter, indepVarArray4, false);
+
+    propertyTable4->SetScalarFieldPropertyValue("DOF3", fieldExpression3);
+
+    std::vector<NXOpen::Fields::FieldVariable*> indepVarArray5(0);
+    fieldExpression4->EditFieldExpression("0", degree, indepVarArray5, false);
+
+    propertyTable4->SetScalarFieldPropertyValue("DOF4", fieldExpression4);
+
+    std::vector<NXOpen::Fields::FieldVariable*> indepVarArray6(0);
+    fieldExpression5->EditFieldExpression("0", degree, indepVarArray6, false);
+
+    propertyTable4->SetScalarFieldPropertyValue("DOF5", fieldExpression5);
+
+    std::vector<NXOpen::Fields::FieldVariable*> indepVarArray7(0);
+    fieldExpression6->EditFieldExpression("0", degree, indepVarArray7, false);
+
+    propertyTable4->SetScalarFieldPropertyValue("DOF6", fieldExpression6);
+
+    std::vector<NXOpen::NXString> propertyValue3(0);
+    propertyTable4->SetTextPropertyValue("description", propertyValue3);
+
+    fixedBuilder->SetDestinationFolder(nullNXOpen_CAE_SimLbcFolder);
+
+    NXOpen::CAE::SimBC* fixed;
+    fixed = fixedBuilder->CommitAddBc();
+
+    fixedBuilder->Destroy();
+
+    //time step table
+    NXOpen::CAE::ModelingObjectPropertyTable* modelingObjectPropertyTableTimeTable;
+    modelingObjectPropertyTableTimeTable = caePart1->ModelingObjectPropertyTables()->CreateModelingObjectPropertyTable("Time Step", "NX NASTRAN - Structural", "NX NASTRAN", "Time Step1", 4);
+    NXOpen::CAE::PropertyTable* timeTable;
+    timeTable = modelingObjectPropertyTableTimeTable->PropertyTable();
+    timeTable->SetBaseScalarWithDataPropertyValue("Time Increment", "1.0", second);
+    timeTable->SetIntegerPropertyValue("Number of Time Steps", 1);
+
+    //Strategy Parameters
+    NXOpen::CAE::ModelingObjectPropertyTable* modelingObjectPropertyTableStrategy;
+    modelingObjectPropertyTableStrategy = caePart1->ModelingObjectPropertyTables()->CreateModelingObjectPropertyTable("Strategy Parameters", "NX NASTRAN - Structural", "NX NASTRAN", "Strategy Parameters1", 5);
+    NXOpen::CAE::PropertyTable* StrategyTable;
+    StrategyTable = modelingObjectPropertyTableStrategy->PropertyTable();
+
+    StrategyTable->SetIntegerPropertyValue("MSTAB", 1);
+    StrategyTable->SetIntegerPropertyValue("LSEARCH", 1);
+
+    //добавление таблиц к simulation
+    NXOpen::CAE::SimSolution* simSolution1(dynamic_cast<NXOpen::CAE::SimSolution*>(simSimulation1->ActiveSolution()));
+    NXOpen::CAE::PropertyTable* propertyTable8;
+    propertyTable8 = simSolution1->PropertyTable();
+    std::vector<NXOpen::CAE::NamedPropertyTable*> propertyValue4(1);
+    propertyValue4[0] = modelingObjectPropertyTableTimeTable;
+    propertyTable8->SetNamedPropertyTableArrayPropertyValue("Time Step Intervals", propertyValue4);
+    propertyTable8->SetNamedPropertyTablePropertyValue("Strategy Parameters", modelingObjectPropertyTableStrategy);
+    propertyTable8->SetBooleanPropertyValue("Large Strains", true);
+    propertyTable8->SetBooleanPropertyValue("Large Displacements", true);
+
+    NXOpen::CAE::PropertyTable* nastranPropertiesTable;
+    nastranPropertiesTable = simSolution1->SolverOptionsPropertyTable();
+
+    nastranPropertiesTable->SetIntegerPropertyValue("parallel", 6);
+    //sim_flag = true;
+//  }
+  //else theUI->NXMessageBox()->Show("CAD error", NXOpen::NXMessageBox::DialogTypeInformation, "Сначала постройте CAD-модель");
+
+
+//  // UF_terminate();
+
+//  //if (sim_flag && cad_flag) {
+     // NXOpen::CAE::SimSolution* simSolution1(dynamic_cast<NXOpen::CAE::SimSolution*>(simSimulation1->ActiveSolution()));
+      NXOpen::CAE::SimSolveManager* theCAESimSolveManager = NXOpen::CAE::SimSolveManager::GetSimSolveManager(theSession);
+      std::vector<NXOpen::CAE::SimSolution*> psolutions1(1);
+      psolutions1[0] = simSolution1;
+      int numsolutionssolved1;
+      int numsolutionsfailed1;
+      int numsolutionsskipped1;
+
+      
+
+      theCAESimSolveManager->SolveChainOfSolutions(psolutions1, NXOpen::CAE::SimSolution::SolveOptionSolve, NXOpen::CAE::SimSolution::SetupCheckOptionCompleteCheckAndOutputErrors, NXOpen::CAE::SimSolution::SolveModeBackground, &numsolutionssolved1, &numsolutionsfailed1, &numsolutionsskipped1);
+      
+ // }
+
+  ////////////////////////////////////////////////get results
+      bool resFlag = true;
+      NXOpen::CAE::SolutionResult* solutionResult1;
+      NXOpen::CAE::SimResultReference* simResultReference1;
+      while (resFlag) {
+          Sleep(30000);
+          simResultReference1 = (dynamic_cast<NXOpen::CAE::SimResultReference*>(simSolution1->Find("Structural")));
+          try {
+
+              solutionResult1 = theSession->ResultManager()->CreateReferenceResult(simResultReference1);
+          }
+          catch (...) {
+              //  theUI->NXMessageBox()->Show("presAtNode", NXOpen::NXMessageBox::DialogTypeInformation, "fail");
+              continue;
+          }
+
+
+          NXOpen::CAE::ResultParameters* resultParameters1;
+          resultParameters1 = theSession->ResultManager()->CreateResultParameters();
+
+          NXOpen::CAE::Loadcase* loadcase1(dynamic_cast<NXOpen::CAE::Loadcase*>(solutionResult1->Find("Loadcase[1]")));
+          NXOpen::CAE::Iteration* iteration1(dynamic_cast<NXOpen::CAE::Iteration*>(loadcase1->Find("Iteration[1]")));
+          NXOpen::CAE::ResultType* resultType1(dynamic_cast<NXOpen::CAE::ResultType*>(iteration1->Find("ResultType[[Contact Pressure][Nodal]]")));
+          std::vector<NXOpen::CAE::Result::Section> section1;
+          section1 = resultType1->GetSectionDefined();
+
+          resultParameters1->SetDBScaling(0);
+
+          NXOpen::CAE::SignalProcessingDBSettings* signalProcessingDBSettings1;
+          signalProcessingDBSettings1 = resultParameters1->GetDbSettings();
+
+          resultParameters1->SetGenericResultType(resultType1);
+
+          resultParameters1->SetBeamSection(NXOpen::CAE::Result::BeamSection(-1));
+
+          resultParameters1->SetShellSection(NXOpen::CAE::Result::ShellSection(-1));
+
+          resultParameters1->SetResultComponent(NXOpen::CAE::Result::Component(-1));
+
+          resultParameters1->SetCoordinateSystem(NXOpen::CAE::Result::CoordinateSystemAbsoluteRectangular);
+
+          resultParameters1->SetSelectedCoordinateSystem(NXOpen::CAE::Result::CoordinateSystemSourceNone, -1);
+
+          resultParameters1->SetRotationAxisOfAbsoluteCyndricalCSYS(NXOpen::CAE::Post::AxisymetricAxisNone);
+
+          resultParameters1->SetBeamResultsInLocalCoordinateSystem(true);
+
+          resultParameters1->SetShellResultsInProjectedCoordinateSystem(false);
+
+          resultParameters1->MakeElementResult(false);
+
+          resultParameters1->SetElementValueCriterion(NXOpen::CAE::Result::ElementValueCriterionAverage);
+
+          resultParameters1->SetSpectrumScaling(NXOpen::CAE::SignalProcessingPlotData::ScalingTypeUnknown);
+
+          resultParameters1->SetAcousticWeighting(NXOpen::CAE::SignalProcessingPlotData::AcousticalWeightingNone);
+
+          NXOpen::CAE::Result::Averaging average1;
+          average1.DoAveraging = false;
+          average1.AverageAcrossPropertyIds = true;
+          average1.AverageAcrossMaterialIds = true;
+          average1.AverageAcrossElementTypes = true;
+          average1.AverageAcrossFeatangle = true;
+          average1.AverageAcrossAnglevalue = 45.0;
+          average1.IncludeInternalElementContributions = true;
+          resultParameters1->SetAveragingCriteria(average1);
+
+          resultParameters1->SetComputationType(NXOpen::CAE::Result::ComputationTypeNone);
+
+          resultParameters1->SetComputeOnVisible(false);
+
+          resultParameters1->SetComplexCriterion(NXOpen::CAE::Result::ComplexAmplitude);
+
+          resultParameters1->SetPhaseAngle(0.0);
+
+          resultParameters1->SetSectionPlyLayer(0, 0, 1);
+
+          resultParameters1->SetPlyID(0);
+
+          resultParameters1->SetPlyLocation(NXOpen::CAE::Result::PlyLocationMiddle);
+
+          resultParameters1->SetScale(1.0);
+
+          NXOpen::Unit* unit1(dynamic_cast<NXOpen::Unit*>(workSimPart->UnitCollection()->FindObject("MilliMeter")));
+          resultParameters1->SetUnit(unit1);
+
+          resultParameters1->SetAbsoluteValue(false);
+
+          resultParameters1->SetTensorComponentAbsoluteValue(NXOpen::CAE::Result::TensorDerivedAbsoluteDerivedComponent);
+
+          resultParameters1->SetCalculateBeamStrResults(false);
+
+          resultParameters1->SetBeamFillets(true);
+
+          resultParameters1->SetBeamFilletRadius(0.5);
+
+          resultParameters1->DisplayMidnodeValue(true);
+
+          resultParameters1->SetIsReferenceNode(false);
+
+          resultParameters1->SetReferenceNode(NULL);
+
+          NXOpen::CAE::CyclicSymmetricParameters* cyclicSymmetricParameters1;
+          cyclicSymmetricParameters1 = resultParameters1->GetCyclicSymmetricParameters();
+
+          cyclicSymmetricParameters1->SetResultOption(NXOpen::CAE::CyclicSymmetricParameters::GetResultOnOriginalModel);
+
+          cyclicSymmetricParameters1->SetOriginalResultOption(NXOpen::CAE::CyclicSymmetricParameters::OriginalResultBySector);
+
+          cyclicSymmetricParameters1->SetSectCriteria(NXOpen::CAE::CyclicSymmetricParameters::SectorCriteriaIndex);
+
+          cyclicSymmetricParameters1->SetSectorValue(NXOpen::CAE::CyclicSymmetricParameters::ValueMaximum);
+
+          cyclicSymmetricParameters1->SetEnvValue(NXOpen::CAE::CyclicSymmetricParameters::EnvelopeValueAverage);
+
+          cyclicSymmetricParameters1->SetSectorIndex(1);
+
+          std::vector<int> sectors1(0);
+          cyclicSymmetricParameters1->SetSectorIndices(sectors1);
+
+          NXOpen::CAE::AxiSymmetricParameters* axiSymmetricParameters1;
+          axiSymmetricParameters1 = resultParameters1->GetAxiSymmetricParameters();
+
+          axiSymmetricParameters1->SetResultOption(NXOpen::CAE::AxiSymmetricParameters::GetResultOnOriginalModel);
+
+          axiSymmetricParameters1->SetRotationAxis(NXOpen::CAE::AxiSymmetricParameters::AxisOfRotationXAxis);
+
+          axiSymmetricParameters1->SetAxiOptions(NXOpen::CAE::AxiSymmetricParameters::OptionsAtRevolveAngle);
+
+          axiSymmetricParameters1->SetEnvelopeVal(NXOpen::CAE::AxiSymmetricParameters::EnvValAverage);
+
+          axiSymmetricParameters1->SetRevolveAngle(0.0);
+
+          axiSymmetricParameters1->SetStartRevolveAngle(0.0);
+
+          axiSymmetricParameters1->SetEndRevolveAngle(360.0);
+
+          axiSymmetricParameters1->SetNumberOfSections(40);
+
+          resultParameters1->SetProjectOnNodeNormal(false);
+
+          int postviewId1;
+          postviewId1 = theSession->Post()->CreatePostviewForResult(0, solutionResult1, false, resultParameters1);
+
+          theSession->ResultManager()->DeleteResultParameters(resultParameters1);
+          NXOpen::CAE::ResultAccess* resa = theSession->ResultManager()->CreateResultAccess(postviewId1);
+
+          std::vector<int> nodes;
+       
+          for (int i = 0; i < nodesObject1.size(); i++) {
+              nodes.push_back(nodesObject1[i]->Label());
+          }
+        
+
+          double angPres = 0;
+          std::vector<double> presAtNode = resa->AskNodalResult(nodes);
+          int nodesNum = presAtNode.size();
+          for (int i = 0; i < nodesNum; i++) {
+              angPres += presAtNode[i];
+          }
+          angPres = angPres / nodesNum;
+         
+          theUI->NXMessageBox()->Show("presAtNode", NXOpen::NXMessageBox::DialogTypeInformation, std::to_string(angPres));
+          resFlag = false;
+      }
 }
 
 /**
