@@ -1,0 +1,361 @@
+#pragma once
+#include <uf_defs.h>
+#include <NXOpen/NXException.hxx>
+#include <NXOpen/Session.hxx>
+#include <NXOpen/Builder.hxx>
+#include <NXOpen/CAE_Post.hxx>
+#include <NXOpen/CAE_PostGraph.hxx>
+#include <NXOpen/CAE_PostGraphAlongPathBuilder.hxx>
+#include <NXOpen/CAE_PostGraphBuilder.hxx>
+#include <NXOpen/CAE_PostSelectionEntity.hxx>
+#include <NXOpen/CAE_ResultManager.hxx>
+#include <NXOpen/CAE_ResultAccess.hxx>
+#include <NXOpen/CAE_SimPart.hxx>
+#include <NXOpen/CAE_Xyplot_Plot.hxx>
+#include <NXOpen/CAE_Xyplot_WindowManager.hxx>
+#include <NXOpen/CAE_Xyplot_XYPlotManager.hxx>
+#include <NXOpen/NXObject.hxx>
+#include <NXOpen/PartCollection.hxx>
+#include <NXOpen/Session.hxx>
+#include <NXOpen/CAE_SolutionResult.hxx>
+#include <NXOpen/CAE_AxiSymmetricParameters.hxx>
+#include <NXOpen/CAE_BaseResultType.hxx>
+#include <NXOpen/CAE_CyclicSymmetricParameters.hxx>
+#include <NXOpen/CAE_Iteration.hxx>
+#include <NXOpen/CAE_Loadcase.hxx>
+#include <NXOpen/CAE_Post.hxx>
+#include <NXOpen/CAE_Result.hxx>
+#include <NXOpen/CAE_ResultManager.hxx>
+#include <NXOpen/CAE_ResultParameters.hxx>
+#include <NXOpen/CAE_ResultType.hxx>
+#include <NXOpen/CAE_SignalProcessingDBSettings.hxx>
+#include <NXOpen/CAE_SignalProcessingPlotData.hxx>
+#include <NXOpen/CAE_SimPart.hxx>
+#include <NXOpen/CAE_SimResultReference.hxx>
+#include <NXOpen/CAE_SimSimulation.hxx>
+#include <NXOpen/CAE_SimSolution.hxx>
+#include <NXOpen/CAE_SolutionResult.hxx>
+#include <NXOpen/CAE_FEElemFace.hxx>
+#include <NXOpen/CAE_SelectFENodeList.hxx>
+
+#include "CAE_SmartSelectionManager.hxx"
+
+#include <NXOpen/CAE_RelatedNodeMethod.hxx>
+#include <NXOpen/CAE_SelectElementsBuilder.hxx>
+#include <NXOpen/CAE_CAEBody.hxx>
+#include <NXOpen/CAE_CAEFace.hxx>
+#include <NXOpen/CAE_CaePart.hxx>
+#include <NXOpen/CAE_FEModel.hxx>
+#include <NXOpen/CAE_FENode.hxx>
+#include <NXOpen/CAE_FemPart.hxx>
+#include <NXOpen/CAE_NodeElementInfoBuilder.hxx>
+#include <NXOpen/CAE_NodeElementInfoManager.hxx>
+#include <NXOpen/CAE_RelatedNodeMethod.hxx>
+#include <NXOpen/CAE_SelectElementsBuilder.hxx>
+#include <NXOpen/CAE_SelectFENodeList.hxx>
+
+#include <NXOpen/NXObject.hxx>
+#include <NXOpen/PartCollection.hxx>
+#include <NXOpen/PreviewBuilder.hxx>
+#include <NXOpen/SelectObjectList.hxx>
+#include <NXOpen/SelectTaggedObjectList.hxx>
+#include <NXOpen/SelectionMethod.hxx>
+#include <uf_defs.h>
+#include <NXOpen/NXException.hxx>
+#include <NXOpen/Session.hxx>
+#include <NXOpen/Builder.hxx>
+#include <NXOpen/CAE_CAEBody.hxx>
+#include <NXOpen/CAE_CAEFace.hxx>
+#include <NXOpen/CAE_CaePart.hxx>
+#include <NXOpen/CAE_FEModel.hxx>
+#include <NXOpen/CAE_FENode.hxx>
+#include <NXOpen/CAE_FemPart.hxx>
+#include <NXOpen/CAE_NodeElementInfoBuilder.hxx>
+#include <NXOpen/CAE_NodeElementInfoManager.hxx>
+#include <NXOpen/CAE_RelatedNodeMethod.hxx>
+#include <NXOpen/CAE_SelectElementsBuilder.hxx>
+#include <NXOpen/CAE_SelectFENodeList.hxx>
+
+#include <NXOpen/NXObject.hxx>
+#include <NXOpen/PartCollection.hxx>
+#include <NXOpen/PreviewBuilder.hxx>
+#include <NXOpen/SelectObjectList.hxx>
+#include <NXOpen/SelectTaggedObjectList.hxx>
+#include <NXOpen/SelectionMethod.hxx>
+#include <NXOpen/Session.hxx>
+#include <NXOpen/TaggedObject.hxx>
+
+#include "dialog_thread.hpp"
+#include <stdio.h>
+#include <uf.h> //файл описаний общих функций
+#include <uf_csys.h> //файл описаний функций работы с координатами
+#include <uf_curve.h> //файл описаний функций кривых
+#include <uf_defs.h>
+#include <uf_mtx.h> 
+#include <uf_modl.h> 
+#include <uf_obj.h> 
+#include <uf_ui.h>
+#include <cmath>
+#include <sstream>
+#include <NXOpen/Annotations_Dimension.hxx>
+#include <NXOpen/Arc.hxx>
+#include <NXOpen/Axis.hxx>
+#include <NXOpen/AxisCollection.hxx>
+#include <NXOpen/BasePart.hxx>
+#include <NXOpen/Body.hxx>
+#include <NXOpen/BodyCollection.hxx>
+#include <NXOpen/BodyDumbRule.hxx>
+#include <NXOpen/Builder.hxx>
+#include <NXOpen/CartesianCoordinateSystem.hxx>
+#include <NXOpen/CoordinateSystem.hxx>
+#include <NXOpen/CoordinateSystemCollection.hxx>
+#include <NXOpen/CurveCollection.hxx>
+#include <NXOpen/CurveDumbRule.hxx>
+#include <NXOpen/CurveFeatureRule.hxx>
+#include <NXOpen/DatumAxis.hxx>
+#include <NXOpen/DatumCollection.hxx>
+#include <NXOpen/DatumPlane.hxx>
+#include <NXOpen/Direction.hxx>
+#include <NXOpen/DirectionCollection.hxx>
+#include <NXOpen/DisplayableObject.hxx>
+#include <NXOpen/DisplayManager.hxx>
+#include <NXOpen/DisplayModification.hxx>
+#include <NXOpen/Edge.hxx>
+#include <NXOpen/Expression.hxx>
+#include <NXOpen/ExpressionCollection.hxx>
+#include <NXOpen/Face.hxx>
+#include <NXOpen/FaceTangentRule.hxx>
+#include <NXOpen/Features_BooleanBuilder.hxx>
+#include <NXOpen/Features_Cone.hxx>
+#include <NXOpen/Features_ConeBuilder.hxx>
+#include <NXOpen/Features_CylinderBuilder.hxx>
+#include <NXOpen/Features_DatumCsys.hxx>
+#include <NXOpen/Features_DatumCsysBuilder.hxx>
+#include <NXOpen/Features_Feature.hxx>
+#include <NXOpen/Features_FeatureCollection.hxx>
+#include <NXOpen/Features_Helix.hxx>
+#include <NXOpen/Features_HelixBuilder.hxx>
+#include <NXOpen/Features_LawCurve.hxx>
+#include <NXOpen/Features_LawCurveBuilder.hxx>
+#include <NXOpen/Features_SketchFeature.hxx>
+#include <NXOpen/Features_SphereBuilder.hxx>
+#include <NXOpen/Features_Swept.hxx>
+#include <NXOpen/Features_SweptBuilder.hxx>
+#include <NXOpen/GeometricUtilities_AlignmentMethodBuilder.hxx>
+#include <NXOpen/GeometricUtilities_AlongSpineBuilder.hxx>
+#include <NXOpen/GeometricUtilities_BooleanRegionSelect.hxx>
+#include <NXOpen/GeometricUtilities_FeatureOptions.hxx>
+#include <NXOpen/GeometricUtilities_LawBuilder.hxx>
+#include <NXOpen/GeometricUtilities_MultiTransitionLawBuilder.hxx>
+#include <NXOpen/GeometricUtilities_NonInflectingLawBuilder.hxx>
+#include <NXOpen/GeometricUtilities_OnPathDimensionBuilder.hxx>
+#include <NXOpen/GeometricUtilities_OrientationMethodBuilder.hxx>
+#include <NXOpen/GeometricUtilities_Rebuild.hxx>
+#include <NXOpen/GeometricUtilities_ScalingMethodBuilder.hxx>
+#include <NXOpen/GeometricUtilities_SShapedLawBuilder.hxx>
+#include <NXOpen/IBaseCurve.hxx>
+#include <NXOpen/IPlane.hxx>
+#include <NXOpen/IReferenceAxis.hxx>
+#include <NXOpen/Line.hxx>
+#include <NXOpen/ModelingView.hxx>
+#include <NXOpen/Fields_Field.hxx>
+#include <NXOpen/Fields_FieldEvaluator.hxx>
+#include <NXOpen/Fields_FieldExpression.hxx>
+#include <NXOpen/Fields_FieldManager.hxx>
+#include <NXOpen/Fields_FieldTable.hxx>
+#include <NXOpen/Fields_FieldVariable.hxx>
+#include <NXOpen/Fields_NameVariable.hxx>
+#include <NXOpen/Fields_PathObjects.hxx>
+#include <NXOpen/Fields_PathObjectsList.hxx>
+#include <NXOpen/Fields_ScalarFieldWrapper.hxx>
+#include <NXOpen/Fields_SpatialMapBuilder.hxx>
+#include <NXOpen/ModelingViewCollection.hxx>
+#include <NXOpen/NXException.hxx>
+#include <NXOpen/NXMatrix.hxx>
+#include <NXOpen/NXObject.hxx>
+#include <NXOpen/NXObjectManager.hxx>
+#include <NXOpen/ObjectList.hxx>
+#include <NXOpen/Offset.hxx>
+#include <NXOpen/OffsetCollection.hxx>
+#include <NXOpen/Part.hxx>
+#include <NXOpen/PartCollection.hxx>
+#include <NXOpen/Plane.hxx>
+#include <NXOpen/PlaneCollection.hxx>
+#include <NXOpen/PlaneTypes.hxx>
+#include <NXOpen/Point.hxx>
+#include <NXOpen/PointCollection.hxx>
+#include <NXOpen/Preferences_RulePreferences.hxx>
+#include <NXOpen/Preferences_SessionPreferences.hxx>
+#include <NXOpen/Preferences_SessionSketch.hxx>
+#include <NXOpen/Preferences_SketchPreferences.hxx>
+#include <NXOpen/PreviewBuilder.hxx>
+#include <NXOpen/RuleManager.hxx>
+#include <NXOpen/Scalar.hxx>
+#include <NXOpen/ScalarCollection.hxx>
+#include <NXOpen/ScCollector.hxx>
+#include <NXOpen/ScCollectorCollection.hxx>
+#include <NXOpen/ScRuleFactory.hxx>
+#include <NXOpen/Section.hxx>
+#include <NXOpen/SectionCollection.hxx>
+#include <NXOpen/SectionList.hxx>
+#include <NXOpen/SelectBodyList.hxx>
+#include <NXOpen/SelectDisplayableObjectList.hxx>
+#include <NXOpen/SelectFaceList.hxx>
+#include <NXOpen/SelectionIntentRule.hxx>
+#include <NXOpen/SelectIReferenceAxis.hxx>
+#include <NXOpen/SelectISurface.hxx>
+#include <NXOpen/SelectLine.hxx>
+#include <NXOpen/SelectObject.hxx>
+#include <NXOpen/SelectObjectList.hxx>
+#include <NXOpen/Session.hxx>
+#include <NXOpen/Sketch.hxx>
+#include <NXOpen/SketchAlongPathBuilder.hxx>
+#include <NXOpen/SketchCollection.hxx>
+#include <NXOpen/SketchDimensionalConstraint.hxx>
+#include <NXOpen/SketchGeometricConstraint.hxx>
+#include <NXOpen/SketchInPlaceBuilder.hxx>
+#include <NXOpen/SmartObject.hxx>
+#include <NXOpen/Spline.hxx>
+#include <NXOpen/TaggedObject.hxx>
+#include <NXOpen/Unit.hxx>
+#include <NXOpen/UnitCollection.hxx>
+#include <NXOpen/Update.hxx>
+#include <NXOpen/View.hxx>
+#include <NXOpen/WCS.hxx>
+#include <NXOpen/Xform.hxx>
+#include <NXOpen/XformCollection.hxx>
+#include <NXOpen/BasePropertyTable.hxx>
+#include <NXOpen/CAE_BaseFemPart.hxx>
+#include <NXOpen/CAE_CAEBody.hxx>
+#include <NXOpen/CAE_BodyCollection.hxx>
+#include <NXOpen/CAE_CAEFace.hxx>
+#include <NXOpen/CAE_CaePart.hxx>
+#include <NXOpen/CAE_DestinationCollectorBuilder.hxx>
+#include <NXOpen/CAE_ElementTypeBuilder.hxx>
+#include <NXOpen/CAE_FEModel.hxx>
+#include <NXOpen/CAE_FemCreationOptions.hxx>
+#include <NXOpen/CAE_FemPart.hxx>
+#include <NXOpen/CAE_FemSynchronizeOptions.hxx>
+#include <NXOpen/CAE_Mesh.hxx>
+#include <NXOpen/CAE_Mesh3dTetBuilder.hxx>
+#include <NXOpen/CAE_MeshCollector.hxx>
+#include <NXOpen/CAE_MeshManager.hxx>
+#include <NXOpen/CAE_ModelingObjectPropertyTable.hxx>
+#include <NXOpen/CAE_ModelingObjectPropertyTableCollection.hxx>
+#include <NXOpen/CAE_SimSolveManager.hxx>
+#include <NXOpen/CAE_PolygonGeometryManager.hxx>
+#include <NXOpen/CAE_PropertyTable.hxx>
+#include <NXOpen/CAE_SelectCAEFaceList.hxx>
+#include <NXOpen/CAE_SimPart.hxx>
+#include <NXOpen/CAE_SimSimulation.hxx>
+#include <NXOpen/CAE_SimSolution.hxx>
+#include <NXOpen/CAE_SimSolutionStep.hxx>
+#include <NXOpen/CAE_Xyplot_BaseTemplateManager.hxx>
+#include <NXOpen/CAE_Xyplot_XYPlotManager.hxx>
+#include <NXOpen/Features_Cylinder.hxx>
+#include <NXOpen/Features_SplitBodyBuilder.hxx>
+#include <NXOpen/GeometricUtilities_BooleanToolBuilder.hxx>
+#include <NXOpen/GeometricUtilities_ExtrudeRevolveToolBuilder.hxx>
+#include <NXOpen/GeometricUtilities_FacePlaneToolBuilder.hxx>
+#include <NXOpen/GeometricUtilities_FaceSetData.hxx>
+#include <NXOpen/JournalManager.hxx>
+#include <NXOpen/LineCollection.hxx>
+#include <NXOpen/MenuBar_MenuBarManager.hxx>
+#include <NXOpen/MenuBar_MenuButton.hxx>
+#include <NXOpen/Assemblies_Component.hxx>
+#include <NXOpen/Assemblies_ComponentAssembly.hxx>
+#include <NXOpen/CAE_AutoBCBuilder.hxx>
+#include <NXOpen/CAE_AutoPairs.hxx>
+#include <NXOpen/CAE_BaseFEModel.hxx>
+#include <NXOpen/CAE_CAEConnectionBuilder.hxx>
+#include <NXOpen/CAE_CAEConnectionCollection.hxx>
+#include <NXOpen/CAE_CaeGroup.hxx>
+#include <NXOpen/CAE_CaeRegion.hxx>
+#include <NXOpen/CAE_CaeRegionBuilder.hxx>
+#include <NXOpen/CAE_FEModelOccurrence.hxx>
+#include <NXOpen/CAE_FENode.hxx>
+#include <NXOpen/CAE_Mesh3d.hxx>
+#include <NXOpen/CAE_MeshManagerOccurrence.hxx>
+#include <NXOpen/CAE_NamedPropertyTable.hxx>
+#include <NXOpen/CAE_NodeCreateBuilder.hxx>
+#include <NXOpen/CAE_NodeElementManager.hxx>
+#include <NXOpen/CAE_SelectElementsBuilder.hxx>
+#include <NXOpen/CAE_SelectFENodeList.hxx>
+#include <NXOpen/CAE_SetManager.hxx>
+#include <NXOpen/CAE_ShowHideBuilder.hxx>
+#include <NXOpen/CAE_ShowHideManager.hxx>
+#include <NXOpen/CAE_SimAutoBcRecipe.hxx>
+#include <NXOpen/CAE_SimBC.hxx>
+#include <NXOpen/CAE_SimBCBuilder.hxx>
+#include <NXOpen/CAE_SimLbcFolder.hxx>
+#include <NXOpen/PartLoadStatus.hxx>
+#include <NXOpen/SelectNXObjectList.hxx>
+#include <NXOpen/SelectTaggedObjectList.hxx>
+#include <NXOpen/CAE_CAEEdge.hxx>
+#include <NXOpen/CAE_SelectCAEFace.hxx>
+#include <NXOpen/CAE_MeshCollectorBuilder.hxx>
+#include <NXOpen/UI.hxx>
+#include <NXOpen/NXMessageBox.hxx>
+#include <NXOpen/MaterialManager.hxx>
+#include <NXOpen/PhysMat_PhysicalMaterialAssignBuilder.hxx>
+#include <NXOpen/PhysMat_PhysicalMaterialListBuilder.hxx>
+#include <NXOpen/PhysicalMaterial.hxx>
+#include <NXOpen/PhysicalMaterialCollection.hxx>
+#include <NXOpen/CAE_PhysicalPropertyTable.hxx>
+#include <NXOpen/CAE_PhysicalPropertyTableCollection.hxx>
+#include <Windows.h>
+class Joint
+{
+public:    
+    NXOpen::Session* theSession;
+    NXOpen::Part* workPart;
+    NXOpen::Part* displayPart;
+   // NXOpen::Part* part1;
+    std::vector <NXOpen::Face*> FaceAr;
+    std::vector <NXOpen::Face*> FaceAr1;
+    NXOpen::CAE::SimSimulation* simSimulation1;
+    double d1;    
+    double d3;
+    double ln;
+    double phi;
+    double phi_grad;
+    double P;
+    double h1;
+    double f;
+    double f1;
+    double r;
+    double r1;
+    double h ;
+    double d4;
+    double d5;
+    double pin_cyl_diam;
+    double pin_cyl_len;
+    double box_cyl_len;
+    double thr_esc;
+    double box_l1;
+    double lm;
+    double cone_recess_len;//конусная выточка в муфте, длина
+    double inner_hole_diam;
+    double anglerot;
+    double rotZ_Offset;
+    double fric_coef;
+    double diam_avg_thread;//диметр резьбы в главном сечении
+    double diam_avg_endFace; //средний диаметр торца
+    std::stringstream cfactor;
+    std::string mesh_size;
+  
+    Joint(NXOpen::Session* theSession, NXOpen::Part* workPart, NXOpen::Part* displayPart);
+    void build();
+
+
+	NXOpen::NXObject* buildCylinder(double diam, double height, NXOpen::Point3d origin, NXOpen::Vector3d axis, NXOpen::NXObject* body2, int boolType);
+	NXOpen::NXObject* buildCone(double Diameter, double height, double halfAngle, NXOpen::Point3d origin, NXOpen::Vector3d direction, int coneType, NXOpen::NXObject* body2, int boolType);
+	NXOpen::CartesianCoordinateSystem* buildCsys(NXOpen::Point3d origin, NXOpen::Vector3d directionX, NXOpen::Vector3d directionY);
+	NXOpen::NXObject* buildSketch(NXOpen::Point3d origin, NXOpen::Vector3d normal, NXOpen::Vector3d axisX);
+	NXOpen::NXObject* helixByLawCurve(double startAngle, double pitch, double startLimit, double endLimit, NXOpen::CartesianCoordinateSystem* csys, NXOpen::Line* baseLine, NXOpen::Line* lines[], int linesCount, bool);
+	NXOpen::Point3d getLinesIntersectionPoint(NXOpen::Point3d a, double ang1, NXOpen::Point3d b, double ang2);
+	NXOpen::Point3d multiplyByMatrix4x4(NXOpen::Point3d p1, NXOpen::Matrix4x4 mat);
+	NXOpen::NXObject* subtractBodies(NXOpen::NXObject* body1, NXOpen::NXObject* body2);
+    NXOpen::NXObject* buildConeByBaseDiameterHeight(double baseDiameter, double height, double halfAngle, NXOpen::Point3d origin, NXOpen::Vector3d direction, NXOpen::NXObject* body2, int boolType);
+};
+
